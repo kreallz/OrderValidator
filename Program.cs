@@ -52,35 +52,53 @@ namespace OrderValidator
 
         public static void Main(string[] args)
         {
-            var folder = ConsoleEx.GetFolderPath("Input folder", ParamsHelper.TryExtractParamValue(args, "i", out string? p) ? p : null);
-            Console.WriteLine(folder);
-            var mask = ConsoleEx.GetParamValue("Search pattern", ParamsHelper.TryExtractParamValue(args, "m", out string? m) ? m : "*");
-
-            foreach (var gr in Directory.GetFiles(folder, mask).Select(x => Path.GetFileName(x)).GroupBy(x => GetMask(x)))
+            var silent = string.Equals((ParamsHelper.TryExtractParamValue(args, "silent", out string? s) ? s : "false"), "true", StringComparison.OrdinalIgnoreCase);
+            try
             {
-                if (gr.Count() == 1)
-                    continue;
-                foreach (var symbol in $"Group: {gr.Key}")
-                    ConsoleEx.Write(symbol, symbol == '0' ? ConsoleColor.DarkGreen : Console.ForegroundColor);
+                var folder = ConsoleEx.GetFolderPath("Input folder", ParamsHelper.TryExtractParamValue(args, "i", out string? p) ? p : null, silent);
+                var mask = ConsoleEx.GetParamValue("Search pattern", ParamsHelper.TryExtractParamValue(args, "m", out string? m) ? m : null, silent);
 
-                var files = gr.OrderBy(x => x).ToList();
-                var curr = files.First();
-                var last = files.Last();
-                Console.WriteLine($" [{curr} .. {last}]");
-                var success = true;
-                while (curr != last)
+                var groups = Directory.GetFiles(folder, mask)
+                    .Select(x => Path.GetFileName(x))
+                    .GroupBy(x => GetMask(x))
+                    .Where(x => x.Count() > 1);
+
+                var groupsCount = groups.Count();
+                var printGroupName = groupsCount > 1;
+
+                foreach (var gr in groups)
                 {
-                    curr = GetNext(curr, last);
-                    if (!files.Contains(curr))
-                    {
-                        ConsoleEx.WriteLine($"Not found: {curr}", ConsoleColor.DarkRed);
-                        success = false;
-                    }
-                }
-                if (success)
-                    ConsoleEx.WriteLine("All files exist!", ConsoleColor.Green);
+                    if (printGroupName)
+                        foreach (var symbol in $"Group: {gr.Key}")
+                            ConsoleEx.Write(symbol, symbol == '0' ? ConsoleColor.DarkGreen : Console.ForegroundColor);
 
-                Console.WriteLine();
+                    var files = gr.OrderBy(x => x).ToList();
+                    var curr = files.First();
+                    var last = files.Last();
+                    if (printGroupName)
+                        Console.WriteLine($" [{curr} .. {last}]");
+                    var success = true;
+                    while (curr != last)
+                    {
+                        curr = GetNext(curr, last);
+                        if (!files.Contains(curr))
+                        {
+                            ConsoleEx.WriteLine($"Not found: {curr}", ConsoleColor.DarkRed);
+                            success = false;
+                        }
+                    }
+                    if (success)
+                        ConsoleEx.WriteLine("All files exist!", ConsoleColor.Green);
+                    if (groupsCount > 1)
+                        Console.WriteLine();
+                }
+
+                if (groupsCount == 0)
+                    ConsoleEx.WriteLine("No file groups to validate!", ConsoleColor.DarkRed);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
     }

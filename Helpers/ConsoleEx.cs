@@ -2,16 +2,21 @@
 {
     public static class ConsoleEx
 	{
-		public static string GetFolderPath(string paramName, string? value = null)
+		public static string GetFolderPath(string paramName, string? value = null, bool silent = false)
 		{
 			paramName = $"{paramName}: ";
-			Console.Write(paramName);
-			if (!string.IsNullOrWhiteSpace(value))
-				Console.WriteLine(value);
-			else
-				value = Console.ReadLine();
+			if (!silent)
+            {
+				Console.Write(paramName);
+				if (!string.IsNullOrWhiteSpace(value))
+					Console.WriteLine(value);
+				else
+					value = Console.ReadLine();
+			}
 			while (!Directory.Exists(value))
 			{
+				if (silent)
+					throw new Exception(paramName + "Wrong path!");
 				Console.WriteLine("Wrong path!");
 				Console.Write(paramName);
 				value = Console.ReadLine();
@@ -19,16 +24,21 @@
 			return value;
 		}
 
-		public static string GetParamValue(string paramName, string? value = null)
+		public static string GetParamValue(string paramName, string? value = null, bool silent = false)
 		{
 			paramName = $"{paramName}: ";
-			Console.Write(paramName);
-			if (!string.IsNullOrWhiteSpace(value))
-				Console.WriteLine(value);
-			else
-				value = Console.ReadLine();
+			if (!silent)
+            {
+				Console.Write(paramName);
+				if (!string.IsNullOrWhiteSpace(value))
+					Console.WriteLine(value);
+				else
+					value = Console.ReadLine();
+            }
 			while (string.IsNullOrWhiteSpace(value))
 			{
+				if (silent)
+					throw new Exception(paramName + "Enter value!");
 				Console.WriteLine("Enter value!");
 				Console.Write(paramName);
 				value = Console.ReadLine();
