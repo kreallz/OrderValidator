@@ -29,6 +29,9 @@
 			return true;
 		}
 
+		public static bool GetBoolParamValue(string[] args, string param)
+			=> string.Equals(TryExtractParamValue(args, param, out string? s) ? s : "false", "true", StringComparison.OrdinalIgnoreCase);
+
 		public static IEnumerable<string> GetParamValues(string[] args, string param)
 		{
 			param = GetParamName(param);
